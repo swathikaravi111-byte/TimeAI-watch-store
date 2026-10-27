@@ -1,0 +1,177 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: timeai-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-timeai_db}
+      POSTGRES_USER: ${DB_USER:-timeai_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-timeai_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - timeai-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-timeai_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: timeai-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-timeai_password}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - timeai-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Elasticsearch (Optional - for advanced search)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.0
+    container_name: timeai-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - timeai-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Kibana (Optional - for log visualization)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.5.0
+    container_name: timeai-kibana
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - timeai-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Backend API Server
+  backend:
+    build:
+      context: .
+      dockerfile: infra/docker/backend/Dockerfile
+    container_name: timeai-backend
+    environment:
+      NODE_ENV: development
+      PORT: ${BACKEND_PORT:-3000}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-timeai_db}
+      DB_USER: ${DB_USER:-timeai_user}
+      DB_PASSWORD: ${DB_PASSWORD:-timeai_password}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-timeai_password}
+      ELASTICSEARCH_HOST: http://elasticsearch:9200
+      JWT_SECRET: ${JWT_SECRET:-dev_secret_key_change_in_production}
+      JWT_EXPIRE: ${JWT_EXPIRE:-24h}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_placeholder}
+      STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY:-pk_test_placeholder}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-placeholder}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-smtp.mailtrap.io}
+      SMTP_PORT: ${SMTP_PORT:-2525}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+    ports:
+      - "${BACKEND_PORT:-3000}:${BACKEND_PORT:-3000}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/node_modules:/app/node_modules
+    networks:
+      - timeai-network
+    command: npm run dev
+
+  # Frontend Application
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/docker/frontend/Dockerfile
+    container_name: timeai-frontend
+    environment:
+      VITE_API_URL: http://localhost:${BACKEND_PORT:-3000}
+      VITE_STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY:-pk_test_placeholder}
+    ports:
+      - "${FRONTEND_PORT:-3001}:${FRONTEND_PORT:-3001}"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/node_modules:/app/node_modules
+    networks:
+      - timeai-network
+    command: npm run dev
+
+  # Adminer (Database Management UI)
+  adminer:
+    image: adminer:latest
+    container_name: timeai-adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - timeai-network
+
+  # MailHog (Email Testing)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: timeai-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - timeai-network
+
+networks:
+  timeai-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
