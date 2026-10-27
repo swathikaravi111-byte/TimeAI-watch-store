@@ -1,43 +1,81 @@
 import { apiClient } from './index'
 import type { Product, ProductsResponse, ProductFilters, Review } from '@/types'
 
+/**
+ * Products API Service
+ * Handles product fetching, searching, and filtering
+ */
 export const productsApi = {
+  /**
+   * Get all products with filters
+   * GET /api/products
+   */
   async getAll(filters?: ProductFilters): Promise<ProductsResponse> {
     const response = await apiClient.get<ProductsResponse>('/products', filters)
     return response.data!
   },
 
+  /**
+   * Get product by ID
+   * GET /api/products/:id
+   */
   async getById(id: string): Promise<Product> {
     const response = await apiClient.get<Product>(`/products/${id}`)
     return response.data!
   },
 
+  /**
+   * Search products
+   * GET /api/products/search/:query
+   */
   async search(query: string, limit = 10): Promise<Product[]> {
-    const response = await apiClient.get<Product[]>('/products/search', {
-      q: query,
+    const response = await apiClient.get<Product[]>(`/products/search/${query}`, {
       limit,
     })
     return response.data!
   },
 
-  async getByCategory(category: string, page = 1, limit = 20): Promise<ProductsResponse> {
-    const response = await apiClient.get<ProductsResponse>(`/products/category/${category}`, {
-      page,
-      limit,
-    })
-    return response.data!
-  },
-
+  /**
+   * Get featured products
+   * GET /api/products/featured
+   */
   async getFeatured(limit = 8): Promise<Product[]> {
     const response = await apiClient.get<Product[]>('/products/featured', { limit })
     return response.data!
   },
 
+  /**
+   * Get recommended products
+   * GET /api/products/recommended
+   */
   async getRecommended(limit = 8): Promise<Product[]> {
     const response = await apiClient.get<Product[]>('/products/recommended', { limit })
     return response.data!
   },
 
+  /**
+   * Get products by category
+   * GET /api/products/category/:categoryId
+   */
+  async getByCategory(
+    categoryId: string,
+    page = 1,
+    limit = 20
+  ): Promise<ProductsResponse> {
+    const response = await apiClient.get<ProductsResponse>(
+      `/products/category/${categoryId}`,
+      {
+        page,
+        limit,
+      }
+    )
+    return response.data!
+  },
+
+  /**
+   * Get product reviews
+   * GET /api/products/:productId/reviews
+   */
   async getReviews(productId: string, page = 1, limit = 10): Promise<{
     reviews: Review[]
     total: number
@@ -50,6 +88,10 @@ export const productsApi = {
     return response.data!
   },
 
+  /**
+   * Add product review
+   * POST /api/products/:productId/reviews
+   */
   async addReview(
     productId: string,
     data: {
@@ -58,23 +100,10 @@ export const productsApi = {
       comment: string
     }
   ): Promise<Review> {
-    const response = await apiClient.post<Review>(`/products/${productId}/reviews`, data)
-    return response.data!
-  },
-
-  async updateReview(
-    productId: string,
-    reviewId: string,
-    data: Partial<Review>
-  ): Promise<Review> {
-    const response = await apiClient.put<Review>(
-      `/products/${productId}/reviews/${reviewId}`,
+    const response = await apiClient.post<Review>(
+      `/products/${productId}/reviews`,
       data
     )
     return response.data!
-  },
-
-  async deleteReview(productId: string, reviewId: string): Promise<void> {
-    await apiClient.delete(`/products/${productId}/reviews/${reviewId}`)
   },
 }
