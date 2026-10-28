@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Card, CardContent } from '@components/common/Card'
-import { Button } from '@components/common/Button'
+import { Button, buttonVariants } from '@components/common/Button'
 import { Loading } from '@components/common/Loading'
 import type { Product } from '@/types'
 import { productsApi } from '@/services/api/products'
@@ -42,22 +42,26 @@ const HomePage: React.FC = () => {
               Experience AI-powered personalization for the perfect timepiece
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Button
-                variant="primary"
-                size="lg"
-                asChild
-                className="bg-white text-primary-600 hover:bg-gray-100"
+              <Link
+                to="/products"
+                className={buttonVariants({
+                  size: 'lg',
+                  className:
+                    '!bg-white !text-primary-700 font-semibold shadow-lg hover:!bg-gray-100',
+                })}
               >
-                <Link to="/products">Shop Now</Link>
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                asChild
-                className="border-white text-white hover:bg-white/10"
+                Shop Now
+              </Link>
+              <Link
+                to="/products"
+                className={buttonVariants({
+                  size: 'lg',
+                  className:
+                    '!border-2 !border-white !bg-transparent !text-white font-semibold hover:!bg-white/20',
+                })}
               >
-                <Link to="/products">Explore Collection</Link>
-              </Button>
+                Explore Collection
+              </Link>
             </div>
           </div>
         </div>

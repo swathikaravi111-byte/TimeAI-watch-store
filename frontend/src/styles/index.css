@@ -92,7 +92,7 @@ a {
 
 /* Button Reset */
 button {
-  @apply font-inherit;
+  font: inherit;
 }
 
 /* Image */
