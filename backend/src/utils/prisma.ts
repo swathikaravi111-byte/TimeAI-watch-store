@@ -4,12 +4,14 @@ import logger from './logger'
 // Singleton pattern for Prisma Client
 let prisma: PrismaClient
 
+const globalForPrisma = global as unknown as { prisma: PrismaClient }
+
 if (process.env.NODE_ENV === 'production') {
   prisma = new PrismaClient()
 } else {
   // Use global in development to prevent reinstantiation on hot reload
-  if (!global.prisma) {
-    global.prisma = new PrismaClient({
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = new PrismaClient({
       log: [
         { emit: 'stdout', level: 'query' },
         { emit: 'stdout', level: 'error' },
@@ -17,7 +19,7 @@ if (process.env.NODE_ENV === 'production') {
       ],
     })
   }
-  prisma = global.prisma
+  prisma = globalForPrisma.prisma
 }
 
 // Log connection status

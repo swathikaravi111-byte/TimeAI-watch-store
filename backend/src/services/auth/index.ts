@@ -1,11 +1,8 @@
 import jwt from 'jsonwebtoken'
 import logger from '@/utils/logger'
+import prisma from '@/utils/prisma'
 import { UnauthorizedError, ConflictError, NotFoundError } from '@/utils/errors'
 import { sanitizeUser, hashPassword, comparePassword } from '@/utils/helpers'
-
-// Mock database - in production use Prisma
-const users = new Map<string, any>()
-let userIdCounter = 1
 
 export class AuthService {
   /**
@@ -20,25 +17,27 @@ export class AuthService {
     logger.info('User registration attempt', { email: data.email })
 
     // Check if user exists
-    const existingUser = Array.from(users.values()).find(
-      (u) => u.email === data.email
-    )
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+    })
+
     if (existingUser) {
       throw new ConflictError('Email already registered')
     }
 
-    const userId = `user-${userIdCounter++}`
-    const user = {
-      id: userId,
-      ...data,
-      password: hashPassword(data.password),
-      role: 'user',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        password: hashPassword(data.password),
+        role: 'USER',
+        status: 'ACTIVE',
+      },
+    })
 
-    users.set(userId, user)
-    logger.info('User registered successfully', { userId, email: data.email })
+    logger.info('User registered successfully', { userId: user.id, email: data.email })
 
     const token = this.generateToken(user)
     const refreshToken = this.generateRefreshToken(user)
@@ -56,7 +55,10 @@ export class AuthService {
   async login(email: string, password: string) {
     logger.info('User login attempt', { email })
 
-    const user = Array.from(users.values()).find((u) => u.email === email)
+    const user = await prisma.user.findUnique({
+      where: { email },
+    })
+
     if (!user) {
       throw new UnauthorizedError('Invalid email or password')
     }
@@ -84,14 +86,16 @@ export class AuthService {
   async refreshToken(token: string) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || 'refresh-secret') as any
-      const user = users.get(decoded.userId)
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+      })
 
       if (!user) {
         throw new NotFoundError('User')
       }
 
       const newToken = this.generateToken(user)
-      return { token: newToken }
+      return { token: newToken, refreshToken: token }
     } catch (error) {
       throw new UnauthorizedError('Invalid refresh token')
     }
@@ -101,7 +105,13 @@ export class AuthService {
    * Get current user
    */
   async getCurrentUser(userId: string) {
-    const user = users.get(userId)
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        addresses: true,
+      },
+    })
+
     if (!user) {
       throw new NotFoundError('User')
     }
@@ -120,14 +130,14 @@ export class AuthService {
       avatar?: string
     }
   ) {
-    const user = users.get(userId)
-    if (!user) {
-      throw new NotFoundError('User')
-    }
-
-    Object.assign(user, {
-      ...data,
-      updatedAt: new Date(),
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        avatar: data.avatar,
+      },
     })
 
     logger.info('User profile updated', { userId })
@@ -142,7 +152,10 @@ export class AuthService {
     oldPassword: string,
     newPassword: string
   ) {
-    const user = users.get(userId)
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    })
+
     if (!user) {
       throw new NotFoundError('User')
     }
@@ -152,8 +165,12 @@ export class AuthService {
       throw new UnauthorizedError('Current password is incorrect')
     }
 
-    user.password = hashPassword(newPassword)
-    user.updatedAt = new Date()
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: hashPassword(newPassword),
+      },
+    })
 
     logger.info('User password changed', { userId })
   }
@@ -161,7 +178,7 @@ export class AuthService {
   /**
    * Logout user
    */
-   async logout(userId: string) {
+  async logout(userId: string) {
     logger.info('User logged out', { userId })
     return { message: 'Logged out successfully' }
   }
