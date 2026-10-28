@@ -92,17 +92,15 @@ app.post('/api/auth/register', (req, res) => {
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
-      data: {
-        user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-        },
-        token,
-        refreshToken: 'dummy-refresh-token',
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
       },
+      token,
+      refreshToken: 'dummy-refresh-token',
     })
   } catch (error) {
     console.error('Registration error:', error)
@@ -139,17 +137,15 @@ app.post('/api/auth/login', (req, res) => {
     res.json({
       success: true,
       message: 'Login successful',
-      data: {
-        user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-        },
-        token,
-        refreshToken: 'dummy-refresh-token',
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
       },
+      token,
+      refreshToken: 'dummy-refresh-token',
     })
   } catch (error) {
     res.status(500).json({

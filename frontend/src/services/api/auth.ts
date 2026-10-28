@@ -11,7 +11,11 @@ export const authApi = {
    * POST /api/auth/register
    */
   async register(payload: RegisterPayload): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/auth/register', payload)
+    const response = await apiClient.post<any>('/auth/register', payload)
+    // Handle both response formats: {data: AuthResponse} and direct AuthResponse
+    if (response.data && response.data.user && response.data.token) {
+      return response.data
+    }
     return response.data!
   },
 
@@ -20,7 +24,11 @@ export const authApi = {
    * POST /api/auth/login
    */
   async login(payload: LoginPayload): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/auth/login', payload)
+    const response = await apiClient.post<any>('/auth/login', payload)
+    // Handle both response formats: {data: AuthResponse} and direct AuthResponse
+    if (response.data && response.data.user && response.data.token) {
+      return response.data
+    }
     return response.data!
   },
 
