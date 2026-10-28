@@ -1,0 +1,109 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*.iml
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+junit.xml
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+database/backups/
+
+# Cache
+.cache/
+.eslintcache
+.prettierignore
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# IDE generated files
+.env.*.js
+
+# Kubernetes
+kubeconfig
+kubeconfig.yml
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*
+*.tfvars
+
+# AWS
+.aws/
+aws-credentials
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# OS specific
+.venv/
+venv/
+env/
+
+# Production artifacts
+*.cer
+*.key
+*.pem
