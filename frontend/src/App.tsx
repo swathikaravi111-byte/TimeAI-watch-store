@@ -13,6 +13,7 @@ import { RegisterPage } from '@pages/Register'
 import { ProfilePage } from '@pages/Profile'
 import { OrdersPage } from '@pages/Orders'
 import { AdminDashboardPage } from '@pages/AdminDashboard'
+import { MenuPage } from '@pages/Menu'
 import { useAuthStore } from '@/store'
 
 // Protected Route Component
@@ -44,6 +45,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
+            <Route path="/menu" element={<MenuPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/:id" element={<ProductDetailsPage />} />
             <Route path="/cart" element={<CartPage />} />

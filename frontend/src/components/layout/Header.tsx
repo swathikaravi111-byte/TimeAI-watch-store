@@ -29,9 +29,25 @@ const Header: React.FC = () => {
             <span className="text-xl font-bold text-white">⏱</span>
           </div>
           <span className="hidden text-xl font-bold text-gray-900 sm:inline">
-            TimeAI Watch Store
+            TimeAI Store
           </span>
         </Link>
+
+        {/* Navigation Links */}
+        <div className="hidden lg:flex items-center gap-6">
+          <Link
+            to="/menu"
+            className="flex items-center gap-1.5 text-sm font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-full transition-colors"
+          >
+            <span>🌸 Flower & Rice Menu 🍚</span>
+          </Link>
+          <Link
+            to="/products"
+            className="text-sm font-medium text-gray-700 hover:text-primary-600"
+          >
+            Watches
+          </Link>
+        </div>
 
         {/* Search Bar - Desktop */}
         <div className="hidden flex-1 px-8 md:block">
@@ -183,6 +199,13 @@ const Header: React.FC = () => {
             />
           </div>
           <nav className="space-y-2">
+            <Link
+              to="/menu"
+              className="block rounded-lg bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100"
+              onClick={closeMobileMenu}
+            >
+              🌸 Flower & Rice Menu 🍚
+            </Link>
             <Link
               to="/products"
               className="block rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
