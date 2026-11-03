@@ -42,6 +42,12 @@ const Header: React.FC = () => {
             <span>🌸 Flower & Rice Menu 🍚</span>
           </Link>
           <Link
+            to="/about"
+            className="text-sm font-medium text-gray-700 hover:text-rose-600 transition-colors"
+          >
+            About Us
+          </Link>
+          <Link
             to="/products"
             className="text-sm font-medium text-gray-700 hover:text-primary-600"
           >
@@ -205,6 +211,13 @@ const Header: React.FC = () => {
               onClick={closeMobileMenu}
             >
               🌸 Flower & Rice Menu 🍚
+            </Link>
+            <Link
+              to="/about"
+              className="block rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              onClick={closeMobileMenu}
+            >
+              About Flower & Rice Shop
             </Link>
             <Link
               to="/products"
